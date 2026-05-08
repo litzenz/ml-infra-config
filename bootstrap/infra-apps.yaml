@@ -8,7 +8,8 @@ spec:
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/litzen/ml-infra-config.git
     path: infrastructure # <--- Points to the infrastructure folder in that repo
-    recursive: true # <--- Tells ArgoCD to also look in subfolders for more apps
+    directory:
+          recurse: true # Tells ArgoCD to also look in subfolders for more apps
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc

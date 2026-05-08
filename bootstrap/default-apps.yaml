@@ -8,7 +8,8 @@ spec:
   source:
     repoURL: http://gitea-http.gitea.svc.cluster.local:3000/litzen/ml-infra-config.git
     path: services/default-project # Points to the folder in that repo where app manifests live
-    recursive: true # Tells ArgoCD to also look in subfolders for more apps
+    directory:
+          recurse: true # Tells ArgoCD to also look in subfolders for more apps
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
