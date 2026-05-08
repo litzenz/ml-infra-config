@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: infra-project
+  namespace: argocd # Must be in the argocd namespace
+spec:
+  description: "Platform-level tools: Gitea, KServe, Traefik, Cert-Manager"
+  
+  # Allow this project to deploy to any namespace
+  # Infrastructure tools often need to create or manage multiple namespaces
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+
+  # Allow pulling from any source (Official Helm charts + your local Gitea)
+  sourceRepos:
+    - '*'
+
+  # CLUSTER-LEVEL PERMISSIONS
+  # Infrastructure apps need to create 'scary' things like CRDs, 
+  # Namespaces, and ClusterRoles. We whitelist them here.
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  # NAMESPACE-LEVEL PERMISSIONS
+  # Allow all standard objects (Pods, Services, etc.)
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

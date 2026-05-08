@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guestbook # The name of the specific service
+  namespace: argocd # Again, this record must be in the 'argocd' namespace so ArgoCD can track it
+spec:
+  project: default # Uses the default project permissions
+  source: # Points to the actual source code/manifests of the app
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook # The folder inside THAT repo where svc.yaml and deployment.yaml live
+  destination:
+    server: https://kubernetes.default.svc # This is the internal Kubernetes API server URL
+    namespace: default # This is where the actual Pods and Services will be created. 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

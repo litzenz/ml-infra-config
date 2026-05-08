@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea-ingress
+  namespace: gitea # Must be in the same namespace as the Gitea service
+  annotations:
+    # Tells Traefik to listen on the standard HTTP port (80/web)
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    # When you type this into Chrome/Safari...
+    - host: gitea.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # ...Traefik sends the traffic to the service named 'gitea-http'
+                name: gitea-http
+                port:
+                  # This matches the internal port Gitea's Helm chart uses
+                  number: 3000

@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitea
+  namespace: argocd # Always 'argocd' so the controller can find the 'order'
+spec:
+  # This links the app to the security rules you defined in your infra-project
+  project: infra-project 
+  source:
+    # The official repository for Gitea's pre-packaged Helm charts
+    repoURL: https://dl.gitea.com/charts/
+    chart: gitea
+    targetRevision: 10.2.0
+    # Helm allows us to 'inject' our own variables into the app's configuration
+    helm:
+      values: |
+
+        postgresql:
+          enabled: false # We don't need a separate database, Gitea can use SQLite for this demo
+        postgresql-ha:
+          enabled: false
+
+        redis-cluster:
+          enabled: false
+        redis:
+          enabled: false
+
+        gitea:
+          config:
+            database:
+              DB_TYPE: sqlite3 # Use a simple file-based database for demo purposes
+            server:
+              # Tells Gitea its name so it can generate correct links/URLs
+              DOMAIN: gitea.localhost
+              ROOT_URL: http://gitea.localhost/
+        service:
+          http:
+            # ClusterIP means it's only visible INSIDE the cluster. 
+            # We will use Traefik (the Ingress) to let the outside world in.
+            type: ClusterIP
+        persistence:
+          # This ensures your Git repos aren't deleted if the Pod restarts.
+          # In k3d, this saves data to your Mac's local disk.
+          enabled: true
+          size: 3Gi
+  destination:
+    # Deploy to the local k3d cluster...
+    server: https://kubernetes.default.svc
+    # ...and put the actual Gitea pods in the 'gitea' namespace.
+    namespace: gitea
+  syncPolicy:
+    automated:
+      # If you change these values in Git, ArgoCD updates the cluster automatically.
+      prune: true
+      selfHeal: true

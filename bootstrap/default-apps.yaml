@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: default-apps
+  namespace: argocd
+spec:
+  project: default # Or a specific project for apps
+  source:
+    repoURL: http://gitea-http.gitea.svc.cluster.local:3000/litzen/ml-infra-config.git
+    path: services/default-project # Points to the folder in that repo where app manifests live
+    recursive: true # Tells ArgoCD to also look in subfolders for more apps
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    # namespace: default # Or your dedicated ml-workloads namespace
