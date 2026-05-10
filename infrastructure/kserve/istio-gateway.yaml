@@ -1,0 +1,35 @@
+# -----------------------------------------------------------------------------
+# APPLICATION: Istio Ingress Gateway
+# PURPOSE: The entry point for all external HTTP/TCP traffic to ML models.
+# DEPENDENCY: Requires 'istiod' (Wave 10) to be healthy to receive config.
+# -----------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-ingress
+  namespace: argocd
+  annotations:
+    # Wave 11: Must start after the Control Plane is ready
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  project: infra-project
+  source:
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: gateway
+    targetRevision: 1.21.0
+    helm:
+      values: |
+        service:
+          # Maps to k3s/k3d LoadBalancer for local access (e.g., localhost:80)
+          type: LoadBalancer 
+        resources:
+          # Gateways are lightweight; keeping them small to prioritize Model RAM
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: istio-system
