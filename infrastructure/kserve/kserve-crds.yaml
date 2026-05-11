@@ -1,0 +1,20 @@
+# services/infra-team/kserve-crds.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kserve-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15" # Must be before Wave 20
+spec:
+  project: infra-project
+  source:
+    # Point to the main KServe repo
+    repoURL: https://github.com/kserve/kserve.git
+    # CRITICAL: Use the release tag, NOT 'master'
+    targetRevision: v0.17.0 
+    # The sub-path within that repo where the chart lives
+    path: charts/kserve-crd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kserve

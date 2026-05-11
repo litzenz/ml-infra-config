@@ -5,7 +5,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kserve-core
+  name: kserve-resources
   namespace: argocd
   annotations:
     # Wave 20: Must start after Cert-Manager (Wave 5) and Issuers (Wave 6)
@@ -13,10 +13,12 @@ metadata:
 spec:
   project: infra-project
   source:
-    # KServe official Helm chart
-    repoURL: https://kserve.github.io/charts
-    chart: kserve-core
-    targetRevision: v0.15.0 # Stable 2026 release
+    # 1. The GitHub Repository URL
+    repoURL: https://github.com/kserve/kserve.git
+    # 2. Pin to a specific tag (matches your 0.17.0 script)
+    targetRevision: v0.17.0 
+    # 3. Path to the Resources chart (NOT the CRD chart)
+    path: charts/kserve-resources
     helm:
       values: |
         kserve:
