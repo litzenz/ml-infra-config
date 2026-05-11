@@ -1,0 +1,71 @@
+# -----------------------------------------------------------------------------
+# APPLICATION: Cert-Manager
+# COMPONENT: Infrastructure Foundation (PKI)
+# -----------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  annotations:
+    # Wave 5: Cert-Manager must be Ready before Knative (Wave 10) or KServe (Wave 20).
+    # KServe webhooks will fail to initialize if the cert-manager CRDs/Service are missing.
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  # Links to the project created in your bundle to ensure RBAC boundaries.
+  project: infra-project
+  source:
+    # Official Jetstack repository for the industry-standard certificate controller.
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.14.0
+    helm:
+      # CRITICAL: Must be true. Cert-Manager requires its own Custom Resource Definitions
+      # (Issuers, Certificates, etc.) to exist in the cluster to function.
+      parameters:
+      - name: installCRDs
+        value: "true"
+      
+      # Inline Values: Keeping configuration here for high visibility of resource costs.
+      values: |
+        # Resource constraints tailored for a 16GB M4 MacBook Air.
+        # These pods are lightweight Go binaries; we keep them small to save RAM for Models.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+
+        # Webhook configuration: KServe uses these to validate InferenceServices.
+        webhook:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
+        cainjector:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+  
+  destination:
+    server: https://kubernetes.default.svc
+    # Standard namespace. Ensure this is defined in your kserve-bundle.yaml.
+    namespace: cert-manager
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # Allows ArgoCD to create the namespace if it doesn't exist yet.
+      - CreateNamespace=true

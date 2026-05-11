@@ -3,17 +3,22 @@ kind: Namespace
 metadata:
   name: gitea
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: istio-system
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: knative-serving
----
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: istio-system
+# ---
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: knative-serving
+# ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: kserve
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
