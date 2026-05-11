@@ -3,6 +3,9 @@ kind: InferenceService
 metadata:
   name: sklearn-iris
   namespace: default # Or your preferred namespace
+  annotations:
+      # Explicitly force Raw mode for this specific model
+      serving.kserve.io/deploymentMode: RawDeployment
 spec:
   predictor:
     model:
