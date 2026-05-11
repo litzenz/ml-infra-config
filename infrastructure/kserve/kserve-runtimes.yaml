@@ -1,0 +1,50 @@
+# -----------------------------------------------------------------------------
+# APPLICATION: KServe Runtime Configs
+# PURPOSE: Installs the "Library" of model servers (Sklearn, PyTorch, etc.)
+# -----------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kserve-runtimes
+  namespace: argocd
+  annotations:
+    # Wave 18: Deploys after CRDs (15) but before specific model apps (20+)
+    argocd.argoproj.io/sync-wave: "18"
+spec:
+  project: infra-project
+  source:
+    # Source: The official KServe repo
+    repoURL: https://github.com/kserve/kserve.git
+    # Target: The same version as your controller to ensure compatibility
+    targetRevision: v0.17.0
+    # Path: The specific directory for runtime templates
+    path: charts/kserve-runtime-configs
+    
+    # Optional: Customize which runtimes are active
+    # By default, the chart enables the most common ones.
+    helm:
+      values: |
+        runtimes:
+          # Enabling the core stack for your lab
+          kserve-sklearnserver: true
+          kserve-pytorchserver: true
+          kserve-xgbserver: true
+          kserve-huggingfaceserver: true
+          kserve-lserve: true
+          # Triton is powerful but can be heavy for local ARM64 testing
+          kserve-triton-runtime: false 
+
+  destination:
+    server: https://kubernetes.default.svc
+    # These are Cluster-Scoped resources, but the HelmRelease record stays in kserve
+    namespace: kserve
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # REQUIRED: Some templates are large and exceed standard annotation limits
+      - ServerSideApply=true
+      # REQUIRED: Prevents sync failures if you are overwriting existing default runtimes
+      - Replace=true

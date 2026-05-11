@@ -14,3 +14,7 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     # namespace: default # Or your dedicated ml-workloads namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
