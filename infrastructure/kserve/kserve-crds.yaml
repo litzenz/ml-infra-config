@@ -18,3 +18,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: kserve
+  syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        # --- MANDATORY FOR LARGE CRDs ---
+        - ServerSideApply=true
+        # Force replaces CRDs if they already exist to prevent "immutable field" errors
+        - Replace=true
