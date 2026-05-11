@@ -1,0 +1,51 @@
+# -----------------------------------------------------------------------------
+# APPLICATION: KServe Core (Raw Deployment Mode)
+# PURPOSE: Orchestrates InferenceServices without the Knative overhead.
+# -----------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kserve-core
+  namespace: argocd
+  annotations:
+    # Wave 20: Must start after Cert-Manager (Wave 5) and Issuers (Wave 6)
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: infra-project
+  source:
+    # KServe official Helm chart
+    repoURL: https://kserve.github.io/charts
+    chart: kserve-core
+    targetRevision: v0.15.0 # Stable 2026 release
+    helm:
+      values: |
+        kserve:
+          # CRITICAL for M4: Disables Knative/Istio dependency
+          deploymentMode: RawDeployment
+          
+          # Adjusting controller resources for a local lab
+          controller:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+        
+        # This tells KServe to use the Cert-Manager Issuer we just tested
+        kserve_admission_webhook:
+          certManager:
+            enabled: true
+            issuerRef:
+              name: selfsigned-issuer
+              kind: ClusterIssuer
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kserve
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
