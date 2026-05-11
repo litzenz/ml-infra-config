@@ -1,0 +1,36 @@
+# WAVE 1: THE PHYSICAL FOUNDATION & GUARDRAILS
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ml-workloads
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-workloads-quota
+  namespace: ml-workloads # Must match the NS above
+  annotations:
+    argocd.argoproj.io/sync-wave: "1" # Apply with the namespace
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+---
+# WAVE 2: THE LOGICAL PERMISSIONS
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ml-team-project
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2" # Enable the project once the room is safe
+spec:
+  destinations:
+  - namespace: ml-workloads
+    server: https://kubernetes.default.svc
+  sourceRepos:
+  - '*'

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    # 1. Force Traefik to use the web entrypoint
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # 2. Crucial: Tell Traefik to use HTTP/2 Cleartext for the backend
+    traefik.ingress.kubernetes.io/service.serversscheme: h2c
+    # 3. Increase the timeout for gRPC streams
+    traefik.ingress.kubernetes.io/router.priority: "100"
+spec:
+  rules:
+    - host: argocd.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
