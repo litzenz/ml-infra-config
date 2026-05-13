@@ -23,16 +23,12 @@ spec:
     # Optional: Customize which runtimes are active
     # By default, the chart enables the most common ones.
     helm:
-      values: |
-        runtimes:
-          # Enabling the core stack for your lab
-          kserve-sklearnserver: true
-          kserve-pytorchserver: true
-          kserve-xgbserver: true
-          kserve-huggingfaceserver: true
-          kserve-lserve: true
-          # Triton is powerful but can be heavy for local ARM64 testing
-          kserve-triton-runtime: false 
+    # Mapping $ helm install kserve-runtime-configs oci://ghcr.io/kserve/charts/kserve-runtime-configs 
+    # --set kserve.servingruntime.enabled=true 
+          values: |
+            kserve:
+              servingruntime:
+                enabled: true
 
   destination:
     server: https://kubernetes.default.svc
