@@ -1,14 +1,25 @@
+# The API group and version for KServe resources
 apiVersion: serving.kserve.io/v1beta1
+# The type of resource being created; an InferenceService manages the lifecycle of a model
 kind: InferenceService
 metadata:
+  # The unique name of your inference service
   name: sklearn-iris
-  namespace: default # Or your preferred namespace
+  # The Kubernetes namespace where the service and its pods will live
+  namespace: default 
   annotations:
-      # Explicitly force Raw mode for this specific model
-      serving.kserve.io/deploymentMode: RawDeployment
+    # Forces KServe to use standard Kubernetes Deployments/Services instead of Knative
+    # This is useful for environments without Istio or for simpler networking
+    serving.kserve.io/deploymentMode: RawDeployment
 spec:
+  # Defines the 'predictor' component (the actual model server)
   predictor:
+    # Indicates this predictor is specifically a machine learning model
     model:
+      # Metadata about the model's technical requirements
       modelFormat:
+        # Tells KServe to use the Scikit-Learn ClusterServingRuntime
         name: sklearn
+      # The location of the model weights/serialized object
+      # KServe's storage-initializer will download this before the server starts
       storageUri: gs://kfserving-examples/models/sklearn/1.0/model

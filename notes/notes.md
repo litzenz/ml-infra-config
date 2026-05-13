@@ -71,9 +71,54 @@ kubectl apply -f ml-infra-config/bootstrap/infra-apps.yaml # track infrastructur
 kubectl apply -f ml-infra-config/bootstrap/default-apps.yaml # track services/default-project
 ```
 
+### kserve
+https://github.com/kserve/kserve.git/charts:
+- crds
+- resources
+- runtimes: --set kserve.servingruntime.enabled=true 
+
+### kserve inference service
+`svc/sklearn-iris-predictor-default` is the full identifier for the service object in your cluster:
+- svc/: This tells kubectl you are looking for a Service resource.
+- sklearn-iris: The name you gave your isvc in metadata.name.
+- predictor: The component of the isvc (KServe can also have transformer or explainer components).
+- default: ~~The namespace where the service lives.~~ (no need in kserve raw deployment)
+
+Inside the cluster, other pods can reach this service at:
+[http://sklearn-iris-predictor.default.svc.cluster.local]()
+
+Endpoint: KServe expects a specific URL (**Open Inference Protocol**) path to handle the prediction request: 
+`/v2/models/sklearn-iris/infer`
+
+Portforward:
+```sh
+# kubectl port-forward svc/<service-name> <local-port>:<service-port>
+kubectl port-forward svc/sklearn-iris-predictor 8081:80 -n default
+```
+Then use [http://localhost:8081/v2/models/sklearn-iris/infer]() to hit the model
+```sh
+curl -v http://localhost:8081/v2/models/sklearn-iris/infer \
+-H "Content-Type: application/json" \
+-d @- <<EOF
+{
+  "inputs": [
+    {
+      "name": "input-0",
+      "shape": [2, 4],
+      "datatype": "FP32",
+      "data": [
+        [6.8, 2.8, 4.8, 1.4],
+        [6.0, 3.4, 4.5, 1.6]
+      ]
+    }
+  ]
+}
+EOF
+```
+
 ### todo
-- terraform
-- kserve
+- terraform for argocd
+- argocd manifest for kserve + promethues + grafana
 - project+namespace management
 - split ml-infra-config and ml-apps-config into 2 repos
 
