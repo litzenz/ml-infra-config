@@ -21,20 +21,19 @@ prometheus:
 
 grafana:
   adminPassword: admin
-  additionalDataSources:
-    - name: Prometheus
-      type: prometheus
-      # The internal Kubernetes DNS URL:
-      # http://[service-name].[namespace].svc.cluster.local:[port]
-      # 'obs-prometheus' is the name generated when fullnameOverride is "obs"
-      url: http://obs-prometheus.monitoring.svc.cluster.local:9090
-      isDefault: true
-
-  # Tell the chart NOT to create the automatic one
+  # additionalDataSources:
+  #   - name: Prometheus
+  #     type: prometheus
+  #     # The internal Kubernetes DNS URL:
+  #     # http://[service-name].[namespace].svc.cluster.local:[port]
+  #     # 'obs-prometheus' is the name generated when fullnameOverride is "obs"
+  #     url: http://obs-prometheus.monitoring.svc.cluster.local:9090
+  #     isDefault: true
   sidecar:
     datasources:
+      enabled: true
       defaultDatasourceEnabled: false
-      
+
   ingress:
       enabled: true
       ingressClassName: traefik
