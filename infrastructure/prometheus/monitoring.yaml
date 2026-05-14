@@ -12,7 +12,7 @@ spec:
       helm:
         # Reference the value file from the SECOND source defined below
         valueFiles:
-          - $values/infrastructure/promethues/values.yaml
+          - $values/infrastructure/prometheus/values.yaml
     - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/litzen/ml-infra-config.git
       targetRevision: main
       ref: values # This gives this repo an alias called '$values'
