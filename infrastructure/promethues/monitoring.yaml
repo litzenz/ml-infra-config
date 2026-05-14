@@ -5,14 +5,17 @@ metadata:
   namespace: argocd
 spec:
   project: infra-project
-  source:
-    repoURL: 'https://prometheus-community.github.io/helm-charts'
-    chart: kube-prometheus-stack
-    targetRevision: 61.x.x
-    helm:
-      # Use the minimal values defined above
-      valueFiles:
-        - values.yaml 
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 61.x.x
+      helm:
+        # Reference the value file from the SECOND source defined below
+        valueFiles:
+          - $values/infrastructure/promethues/values.yaml
+    - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/litzen/ml-infra-config.git
+      targetRevision: main
+      ref: values # This gives this repo an alias called '$values'
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: monitoring
