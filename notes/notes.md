@@ -119,7 +119,7 @@ EOF
 
 ### todo
 - terraform for argocd
-- argocd manifest for kserve + promethues + grafana
+- argocd manifest for kserve + prometheus + grafana
 - kserve custom runtimes
 - split ml-infra-config and ml-apps-config into 2 repos
 

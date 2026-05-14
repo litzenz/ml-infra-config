@@ -11,14 +11,12 @@ prometheus:
         medium: Memory # Faster for local, lost on restart
     # Allow Prometheus to discover ServiceMonitors in any namespace
     serviceMonitorSelectorNilUsesHelmValues: false
-
-# Disable components not strictly needed for model monitoring
-alertmanager:
-  enabled: false
-prometheus-node-exporter:
-  enabled: false
-kubeStateMetrics:
-  enabled: true # Keep this; useful for HPA/Pod status
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - prometheus.localhost
+    path: /
 
 grafana:
   adminPassword: admin
@@ -30,3 +28,17 @@ grafana:
       # 'obs-prometheus' is the name generated when fullnameOverride is "obs"
       url: http://obs-prometheus.monitoring.svc.cluster.local:9090
       isDefault: true
+  ingress:
+      enabled: true
+      ingressClassName: traefik
+      hosts:
+        - grafana.localhost
+      path: /
+
+# Disable components not strictly needed for model monitoring
+alertmanager:
+  enabled: false
+prometheus-node-exporter:
+  enabled: false
+kubeStateMetrics:
+  enabled: true # Keep this; useful for HPA/Pod status
