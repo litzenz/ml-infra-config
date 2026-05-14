@@ -29,10 +29,6 @@ grafana:
   #     # 'obs-prometheus' is the name generated when fullnameOverride is "obs"
   #     url: http://obs-prometheus.monitoring.svc.cluster.local:9090
   #     isDefault: true
-  sidecar:
-    datasources:
-      enabled: true
-      defaultDatasourceEnabled: false
 
   ingress:
       enabled: true
