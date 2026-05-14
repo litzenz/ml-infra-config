@@ -17,6 +17,7 @@ prometheus:
     hosts:
       - prometheus.localhost
     path: /
+    service.port: 9090
 
 grafana:
   adminPassword: admin
