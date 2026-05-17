@@ -117,9 +117,43 @@ curl -v http://localhost:8081/v2/models/sklearn-iris/infer \
 EOF
 ```
 
+### Auth and Secrets
+![components](./components.png)
+
+1. MLflow Components
+MLflow tracks your training, stores your model artifacts, and serves as your Model Registry.
+
+| Component | What it does | Where to run it | Why |
+| :--- | :--- | :--- | :--- |
+| **MLflow Tracking UI / Server** | The web dashboard and REST API endpoint that data scientists and pipelines interact with. | **In-Cluster (Deployment)** | Stateless compute. It scales horizontally based on traffic and can be managed completely via ArgoCD. |
+| **Backend Store** | Stores experiment metadata, run parameters, metrics, and model version text logs. | **Cloud Managed DB** *(RDS / Cloud SQL)* | **Critical State.** A relational database needs automatic backups, high availability, and multi-AZ failover that cloud providers manage flawlessly. |
+| **Artifact Store** | Stores the heavy physical binaries (e.g., `.pkl`, `.onnx`, weights, and environment files). | **Cloud Object Storage** *(S3 / GCS)* | **Critical State.** Infinite scaling, zero maintenance, and allows KServe to pull models directly without putting load on the MLflow server. |
+
+2. ArgoCD Components
+ArgoCD handles the declarative GitOps deployment of your entire stack (including MLflow and KServe manifests).
+
+| Component | What it does | Where to run it | Why |
+| :--- | :--- | :--- | :--- |
+| **ArgoCD API Server** | Powers the Web UI, CLI, and handles authentication/RBAC. | **In-Cluster (Deployment)** | Stateless API layer. |
+| **Application Controller** | The brains. It continuously compares the live state of the cluster with the desired state in your Git repo. | **In-Cluster (StatefulSet)** | Compute-heavy. It needs to run inside the cluster to have low-latency access to the Kubernetes API server. |
+| **Repo Server** | Maintains a local cache of your Git repositories and generates Kubernetes manifests from Helm/Kustomize. | **In-Cluster (Deployment)** | Stateless worker that can be scaled up if you have hundreds of Git repos. |
+| **Redis Cache** | Caches Git manifests and cluster states so ArgoCD doesn't rate-limit your GitHub/GitLab account. | **In-Cluster (PVC / Ephemeral)** | **Low-risk State.** While it uses a volume, the data is entirely disposable. If Redis dies, ArgoCD simply clones the Git repo again and rebuilds the cache. |
+
+3. KServe Components
+KServe provides highly scalable, serverless model inference. It relies heavily on a Cloud-Native Serverless framework (typically Knative) and a Service Mesh (Istio or Linkerd).
+
+| Component | What it does | Where to run it | Why |
+| :--- | :--- | :--- | :--- |
+| **KServe Controller Manager** | Watches for `InferenceService` CRDs and orchestrates the creation of serving pods, routing, and scaling. | **In-Cluster (Deployment)** | Core control plane compute. |
+| **Storage Initializer** | An init-container that runs right before your model starts. It downloads the actual model weights from your Cloud Object Store (S3). | **In-Cluster (Pod Init-Container)** | Short-lived compute task that requires cloud IAM permissions to read from your S3 bucket. |
+| **Model Webhook** | Injects sidecars and variables into serving pods when they are created. | **In-Cluster (Deployment)** | Standard Kubernetes extension mechanism. |
+| **Knative Serving** *(Dependency)* | Manages the serverless autoscaling (including scaling down to absolute zero pods if there's no traffic). | **In-Cluster (Deployments)** | Micro-management compute layer for scaling pods up and down. |
+| **Istio Service Mesh** *(Dependency)* | Handles ingress routing, canary deployments (e.g., splitting traffic 90/10 between model versions), and mTLS security. | **In-Cluster (DaemonSets/Deployments)** | Network routing infrastructure that *must* live co-located on your cluster nodes. |
+
 ### todo
 - terraform for argocd
 - argocd manifest for kserve + prometheus + grafana
+- github actions
 - kserve custom runtimes
 - split ml-infra-config and ml-apps-config into 2 repos
 
