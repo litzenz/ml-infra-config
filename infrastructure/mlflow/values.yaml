@@ -1,0 +1,37 @@
+# mlflow/values.yaml
+
+replicaCount: 1
+
+# Configure the tracking server backend
+backendStore:
+  postgres:
+    enabled: true
+    # The chart will spin up a lightweight, bundled PostgreSQL instance
+    managed: true 
+
+# Tell MLflow where to store model artifacts so KServe can grab them
+artifactStore:
+  s3:
+    enabled: true
+    # Replace with your local MinIO route or AWS S3 target
+    bucket: "s3://my-local-mlflow-artifacts" 
+    # Ensure this endpoint is reachable by both MLflow inside k3s and your local machine
+    # in-cluster traffic: [app].[namespace]
+    endpoint: "http://minio.minio.svc.cluster.local:9000" 
+
+# Pass storage credentials to the MLflow server pods
+extraEnvVars:
+  - name: AWS_ACCESS_KEY_ID # USER NAME
+    valueFrom:
+      secretKeyRef:
+        name: storage-credentials
+        key: username
+  - name: AWS_SECRET_ACCESS_KEY # PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: storage-credentials
+        key: password
+
+service:
+  type: ClusterIP
+  port: 5000

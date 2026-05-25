@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: minio
+    targetRevision: 14.x.x  # Freeze to the stable 14 major line
+    helm:
+      valueFiles:
+        - $my-git-config/minio/values.yaml
+  sources:
+    # Linking your private configuration repository just like we did with MLflow
+    - repoURL: https://github.com/your-username/your-gitops-repo.git
+      targetRevision: main
+      ref: my-git-config
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    createNamespace: true

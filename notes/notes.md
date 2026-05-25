@@ -77,6 +77,16 @@ https://github.com/kserve/kserve.git/charts:
 - resources
 - runtimes: --set kserve.servingruntime.enabled=true 
 
+The best way to install kserve is **The "Pin and Vendoring" Strateg**
+- helm pull the 'immutable, frozen deployment' chart releases (artifacts) from OCI (Open Container Initiative) registries via GitHub Container Registry (ghcr.io). See available artifacts [here](https://github.com/orgs/kserve/packages). *OCI Artifacts vs Container Images*
+
+- host runtimes in private container registry: mirrored from official images, or custom built images
+
+- use kserve-custom-runtimes repo to overwrite the default ClusterServingRuntime (cluster scope)
+
+- ServingRuntime can still be customized on demand (namespace scope) in the project repo
+
+
 ### kserve inference service
 Inside the cluster, other pods can reach this service at:
 [http://sklearn-iris-predictor.default.svc.cluster.local]()
@@ -117,6 +127,13 @@ curl -v http://localhost:8081/v2/models/sklearn-iris/infer \
 EOF
 ```
 
+### Networking
+Gateway API: breaks networking into GatewayClass, Gateway, HTTPRoute/GRPCRote
+
+North-South (getting traffic from outside into the cluster: ingress, eg. Traefik)
+
+East-West (how pods talk to each other inside the cluster: service mesh, eg. Istio)
+
 ### Auth and Secrets
 ![components](./components.png)
 
@@ -153,8 +170,17 @@ KServe provides highly scalable, serverless model inference. It relies heavily o
 ### todo
 - terraform for argocd
 - argocd manifest for kserve + prometheus + grafana
-- github actions
-- kserve custom runtimes
+- prometheus + grafana 101
+- kubernetes 101: 
+1. API Layer (schema, CRD): we define service inference at the API layer using kserve's InferenceService CRD
+    - kind: configuration schema
+2. Control Plane (controller, operator): watches API objects and routing **classes** and makes decisions about resource allocating.
+    - class: route the resource to the right operator engine
+3. Data Plane: physical execution (network traffic, compute runs)
+    - runtime: environment, container image that will load and execute the actual code or model.
+
+- github actions 101
+- kserve custom runtimes (ClusterServingRuntime and Custom ServingRuntime)
 - split ml-infra-config and ml-apps-config into 2 repos
 
 

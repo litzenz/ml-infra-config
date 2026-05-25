@@ -1,0 +1,37 @@
+# minio/values.yaml
+mode: standalone
+
+# Establish static admin credentials for your local development mapping
+auth:
+  rootUser: "admin"
+  rootPassword: "LocalSuperSecurePassword123"
+
+# Automatically provision the bucket MLflow and KServe will watch
+defaultBuckets: "mlflow-artifacts"
+
+# Persistence configuration tailored for standard local k3s storage
+persistence:
+  enabled: true
+  storageClass: "local-path" # k3s default out-of-the-box storage class
+  size: 2Gi
+
+# Expose services clear of your cluster network limits
+api:
+  type: ClusterIP
+  
+# 1. Expose the S3 API Endpoint (Used by code, MLflow, and KServe)
+ingress:
+  enabled: true
+  ingressClassName: traefik # k3s default ingress controller
+  hostname: minio-api.localhost
+  path: /
+  annotations:
+    # Traefik specific tuning to handle massive model binary file uploads (e.g., 500MB+ weights)
+    traefik.ingress.kubernetes.io/router.clientpayloadmaxbytes: "0" # 0 disables the limit completely
+
+# 2. Expose the Web Console Admin UI (Used by you in the browser)
+ingressConsole:
+  enabled: true
+  ingressClassName: traefik
+  hostname: minio-console.localhost
+  path: /

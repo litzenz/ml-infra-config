@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlflow
+  namespace: argocd # 1. WHERE THE ARGOCD CONTROLLER LIVES
+spec:
+  project: default
+  # Switch from "source" to "sources" to enable multiple inputs
+  sources:
+    # Source 1: The official upstream Helm chart
+    - repoURL: https://community-charts.github.io/helm-charts
+      chart: mlflow
+      targetRevision: 1.8.1 # Freeze the chart version
+      helm:
+        valueFiles:
+          # Use the $ identifier designated by the 'ref' field below
+          - $values/infrastructure/mlflow/values.yaml
+
+    # Source 2: Your local/private Git repository containing the custom values overrides
+    - repoURL: http://gitea-http.gitea.svc.cluster.local:3000/litzen/ml-infra-config.git
+      targetRevision: main                                       # Or your target environment branch
+      ref: values                                            # This creates the $my-git-config variable
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mlflow # 2. WHERE MLFLOW APPS GET DEPLOYED
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    createNamespace: true
